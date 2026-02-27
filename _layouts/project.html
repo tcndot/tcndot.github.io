@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ page.title }} | {{ site.title }}</title>
+
+  <link rel="icon" type="image/png" href="{{ site.baseurl }}/assets/logo4favicon.png">
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    html, body { margin:0; font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; color:#111; -webkit-font-smoothing:antialiased; }
+    .container { max-width:1120px; margin:0 auto; padding:22px; box-sizing:border-box; }
+
+    /* HERO (title above map) */
+    .hero-header { max-width:1120px; margin: 18px auto 14px auto; text-align:center; padding:0 22px; }
+    .hero-title { font-size:2.1rem; font-weight:900; margin-bottom:6px; color:#0b3a0b; letter-spacing:-0.5px; }
+    .hero-location { font-size:1.1rem; font-weight:700; color:#15431a; margin-bottom:4px; }
+    .hero-motto { font-size:0.98rem; color:#444; margin-top:0; }
+
+    /* FULL WIDTH MAP IMAGE */
+    .hero-wrap { width:100vw; position:relative; left:50%; right:50%; margin-left:-50vw; margin-right:-50vw; box-sizing:border-box; }
+    .hero-photo { width:100%; height:auto; display:block; object-fit:cover; border-bottom-left-radius:12px; border-bottom-right-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.06); }
+
+    /* DETAILS BOX */
+    .details-box { max-width:820px; margin:20px auto 22px auto; background:#fff; border-radius:12px; box-shadow:0 14px 40px rgba(10,20,10,0.06); padding:20px; text-align:left; }
+    .details-sub { color:#444; margin-top:6px; }
+
+    /* === REPLACED: responsive two-column grid for points === */
+    .points {
+      margin-top: 12px;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+
+    .point {
+      display: grid;
+      grid-template-columns: 1fr auto; /* label | value */
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px dashed #eee;
+      align-items: center;
+    }
+
+    .point strong {
+      margin: 0;
+      font-weight: 800;
+      color: #000;
+      min-width: 0; /* allow label to wrap instead of forcing narrow value column */
+      line-height: 1.15;
+    }
+
+    .point .value {
+      text-align: right;
+      color: #111;
+      white-space: normal;
+      word-break: break-word;
+      max-width: 320px;
+    }
+    /* === END REPLACED BLOCK === */
+
+    /* Q&A */
+    .qa-box { background:#fff; border-radius:10px; padding:16px; margin-top:20px; box-shadow:0 8px 20px rgba(10,20,10,0.04); color:#000; }
+    .qa-question { font-weight:800; margin-bottom:6px; }
+    .qa-answer { margin-bottom:12px; }
+
+    /* SLIDER */
+    .slider { position:relative; width:100%; max-width:1000px; margin:20px auto 0; border-radius:12px; overflow:hidden; }
+    .slides { display:flex; transition:transform .35s ease; }
+    .slide { min-width:100%; }
+    .slide img { width:100%; height:520px; object-fit:cover; display:block; }
+    .slider .nav-btn { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.92); border-radius:10px; padding:10px; box-shadow:0 6px 20px rgba(0,0,0,0.12); border:1px solid rgba(0,0,0,0.06); cursor:pointer; }
+    .nav-left{ left:12px; } .nav-right{ right:12px; }
+
+    /* ROTATING ROWS */
+    .rotating-gallery { max-width:1120px; margin:32px auto; padding:0 22px; box-sizing:border-box; }
+    .rot-row { overflow:hidden; position:relative; white-space:nowrap; margin:12px 0; border-radius:8px; }
+    .rot-track { display:inline-flex; align-items:center; gap:12px; will-change:transform; animation: scroll var(--speed) linear infinite; }
+    /* reverse class flips direction; assigned via JS randomly */
+    .rot-row.reverse .rot-track { animation-direction: reverse; }
+
+    /* thin, subtle outline for each photo card */
+    .rot-card { display:inline-block; flex: 0 0 auto; border:1px solid rgba(0,0,0,0.08); border-radius:6px; overflow:hidden; background:#fff; box-shadow:0 6px 14px rgba(0,0,0,0.04); }
+    .rot-card img { display:block; height:120px; width:auto; max-width:220px; object-fit:cover; vertical-align:middle; }
+    .rot-row:hover .rot-track, .rot-row:focus-within .rot-track { animation-play-state: paused; }
+
+    @keyframes scroll { from { transform: translateX(0%); } to { transform: translateX(-50%); } }
+
+    /* MODAL (lightbox) */
+    .pj-modal { position:fixed; inset:0; background:rgba(0,0,0,0.75); display:none; align-items:center; justify-content:center; z-index:99999; padding:20px; }
+    .pj-modal.open { display:flex; }
+    .pj-modal-content { position:relative; max-width:1200px; width:100%; max-height:90vh; display:flex; align-items:center; justify-content:center; }
+    .pj-modal img { max-width:100%; max-height:90vh; object-fit:contain; border-radius:6px; box-shadow:0 20px 50px rgba(0,0,0,0.5); background:#fff; }
+    .pj-modal .close, .pj-modal .prev, .pj-modal .next { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.95); border-radius:8px; padding:10px; cursor:pointer; border:1px solid rgba(0,0,0,0.08); }
+    .pj-modal .close { top:14px; right:14px; transform:none; }
+    .pj-modal .prev { left:8px; } .pj-modal .next { right:8px; }
+    .pj-modal .caption { position:absolute; bottom:14px; left:50%; transform:translateX(-50%); color:#fff; font-size:0.95rem; text-shadow:0 1px 2px rgba(0,0,0,0.6); }
+
+    /* === ADDED: Mobile tweaks to improve readability on phones === */
+    @media (max-width: 480px) {
+      .container { padding-left: 12px; padding-right: 12px; }
+      .hero-title { font-size: 1.2rem; }
+      .hero-location { font-size: 0.95rem; }
+      .details-box { margin: 12px 8px; padding: 14px; }
+      .point { padding: 10px 0; gap: 8px; grid-template-columns: 1fr auto; }
+      .point strong { font-size: 1.02rem; }
+      .point .value { font-size: 0.98rem; text-align: right; }
+      .project-content { font-size: 15px; line-height: 1.6; }
+      .slide img { height: 220px; object-fit: cover; }
+    }
+    /* === END mobile tweaks === */
+
+    /* responsive */
+    @media (max-width:880px){ .slide img{ height:320px; } .hero-title{ font-size:1.6rem; } .rot-card img { height:88px; max-width:160px; } }
+  </style>
+</head>
+<body>
+
+  {% include header.html %}
+
+  <main class="container">
+
+    <!-- HERO HEADER -->
+    <div class="hero-header">
+      <div class="hero-title">{{ page.title }}</div>
+
+      {% if page.location %}
+        <div class="hero-location">{{ page.location }}</div>
+      {% endif %}
+
+      {% if page.subtitle %}
+        <div class="hero-motto">{{ page.subtitle }}</div>
+      {% endif %}
+    </div>
+
+    <!-- FULL-BLEED MAP -->
+    <div class="hero-wrap">
+      {% if page.map_image %}
+        <img src="{{ page.map_image | relative_url }}" alt="Project map" class="hero-photo" />
+      {% elsif page.image %}
+        <img src="{{ page.image | relative_url }}" alt="Project image" class="hero-photo" />
+      {% else %}
+        <div class="hero-photo" style="height:360px; display:flex; justify-content:center; align-items:center; background:#f3f7f3; color:#8aa88a;">
+          No project image provided
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- DETAILS BOX -->
+    <section class="details-box">
+      {% if page.points %}
+      <div class="points">
+        {% for p in page.points %}
+          <div class="point">
+            <strong>{{ p.label }} :</strong>
+            <div class="value">{{ p.value }}</div>
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- PAGE CONTENT -->
+    <section class="project-content max-w-[1000px] mx-auto mt-6">
+      {{ content }}
+    </section>
+
+    <!-- Q&A -->
+    {% if page.qa %}
+    <section class="qa-box max-w-[1000px] mx-auto">
+      {% for item in page.qa %}
+        <div class="qa-item">
+          <div class="qa-question">{{ item.q }}</div>
+          <div class="qa-answer">{{ item.a }}</div>
+        </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    <!-- SLIDESHOW -->
+    {% assign gallery = page.gallery | default: page.photos | default: nil %}
+    {% if gallery %}
+    <div class="slider" id="projectSlider">
+      <div class="slides" id="slides">
+        {% for img in gallery %}
+        <div class="slide"><img src="{{ img | relative_url }}" loading="lazy" alt="Project photo {{ forloop.index }}"></div>
+        {% endfor %}
+      </div>
+
+      <button class="nav-btn nav-left" id="prevBtn">‹</button>
+      <button class="nav-btn nav-right" id="nextBtn">›</button>
+    </div>
+    {% endif %}
+
+    <!-- ROTATING ROWS -->
+    <div class="rotating-gallery" aria-label="Project rotating photos">
+      {% assign rows = page.rotating_rows | default: nil %}
+      {% if rows %}
+        {% for row in rows %}
+          <div class="rot-row" tabindex="0" aria-roledescription="carousel row {{ forloop.index }}">
+            <div class="rot-track">
+              {%- comment -%} duplicate items for endless scroll {%- endcomment -%}
+              {% for img in row %}
+                <div class="rot-card"><img src="{{ img | relative_url }}" loading="lazy" alt="Project photo {{ forloop.index }}" data-src="{{ img | relative_url }}"></div>
+              {% endfor %}
+              {% for img in row %}
+                <div class="rot-card"><img src="{{ img | relative_url }}" loading="lazy" alt="Project photo duplicate {{ forloop.index }}" data-src="{{ img | relative_url }}"></div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+  </main>
+
+  {% include footer.html %}
+
+  <!-- MODAL -->
+  <div class="pj-modal" id="pjModal" role="dialog" aria-modal="true" aria-label="Image viewer">
+    <div class="pj-modal-content" id="pjModalContent">
+      <button class="close" id="pjClose" aria-label="Close">✕</button>
+      <button class="prev" id="pjPrev" aria-label="Previous">‹</button>
+      <img src="" alt="" id="pjImg">
+      <button class="next" id="pjNext" aria-label="Next">›</button>
+      <div class="caption" id="pjCaption"></div>
+    </div>
+  </div>
+
+  <script>
+    // --------------------
+    // Slider controls (unchanged)
+    // --------------------
+    (function(){
+      const slidesEl = document.getElementById('slides');
+      if (!slidesEl) return;
+      const slides = slidesEl.children;
+      const total = slides.length;
+      let idx = 0;
+      function update() { slidesEl.style.transform = `translateX(-${idx * 100}%)`; }
+      document.getElementById('nextBtn').addEventListener('click', function(){ idx = (idx+1) % total; update(); });
+      document.getElementById('prevBtn').addEventListener('click', function(){ idx = (idx-1+total) % total; update(); });
+      document.addEventListener('keydown', function(e){
+        if (e.key === 'ArrowLeft') { idx = (idx-1+total) % total; update(); }
+        if (e.key === 'ArrowRight') { idx = (idx+1) % total; update(); }
+      });
+      update();
+    })();
+
+    // --------------------
+    // Rotating rows + modal (random speed + random direction)
+    // --------------------
+    (function(){
+      // Build flat image list from gallery + rotating_rows for the modal navigation
+      const flatImages = [];
+      {% if gallery %}
+        {% for img in gallery %}
+          flatImages.push({ src: "{{ img | relative_url }}", caption: "{{ page.title | escape }}" });
+        {% endfor %}
+      {% endif %}
+      {% if rows %}
+        {% for row in rows %}
+          {% for img in row %}
+            flatImages.push({ src: "{{ img | relative_url }}", caption: "{{ page.title | escape }}" });
+          {% endfor %}
+        {% endfor %}
+      {% endif %}
+
+      // Modal elements
+      const modal = document.getElementById('pjModal');
+      const modalImg = document.getElementById('pjImg');
+      const modalCaption = document.getElementById('pjCaption');
+      const btnClose = document.getElementById('pjClose');
+      const btnNext = document.getElementById('pjNext');
+      const btnPrev = document.getElementById('pjPrev');
+      let currentIndex = -1;
+
+      function openModal(index) {
+        if (!flatImages.length) return;
+        currentIndex = index;
+        const item = flatImages[currentIndex];
+        modalImg.src = item.src;
+        modalImg.alt = item.caption || '';
+        modalCaption.textContent = (currentIndex+1) + ' / ' + flatImages.length;
+        modal.classList.add('open');
+        document.documentElement.classList.add('modal-open');
+        // pause tracks
+        document.querySelectorAll('.rot-track').forEach(t => t.style.animationPlayState = 'paused');
+      }
+      function closeModal() {
+        modal.classList.remove('open');
+        document.documentElement.classList.remove('modal-open');
+        currentIndex = -1;
+        modalImg.src = '';
+        // resume tracks
+        document.querySelectorAll('.rot-track').forEach(t => t.style.animationPlayState = 'running');
+      }
+      function showNext() { if (flatImages.length === 0) return; currentIndex = (currentIndex + 1) % flatImages.length; openModal(currentIndex); }
+      function showPrev() { if (flatImages.length === 0) return; currentIndex = (currentIndex - 1 + flatImages.length) % flatImages.length; openModal(currentIndex); }
+
+      // Attach click handlers to rotating images & slides
+      document.querySelectorAll('.rot-card img').forEach((imgEl) => {
+        imgEl.style.cursor = 'pointer';
+        imgEl.addEventListener('click', function(){
+          const src = imgEl.getAttribute('data-src') || imgEl.src;
+          const found = flatImages.findIndex(it => it.src === src);
+          if (found >= 0) openModal(found);
+        });
+      });
+      document.querySelectorAll('.slide img').forEach((imgEl) => {
+        imgEl.style.cursor = 'pointer';
+        imgEl.addEventListener('click', function(){
+          const src = imgEl.getAttribute('src') || imgEl.src;
+          const found = flatImages.findIndex(it => it.src === src);
+          if (found >= 0) openModal(found);
+        });
+      });
+
+      // Modal listeners
+      btnClose.addEventListener('click', closeModal);
+      btnNext.addEventListener('click', function(e){ e.stopPropagation(); showNext(); });
+      btnPrev.addEventListener('click', function(e){ e.stopPropagation(); showPrev(); });
+      modal.addEventListener('click', function(e){ if (e.target === modal || e.target === modalCaption) closeModal(); });
+      document.addEventListener('keydown', function(e){
+        if (!modal.classList.contains('open')) return;
+        if (e.key === 'Escape') closeModal();
+        if (e.key === 'ArrowRight') showNext();
+        if (e.key === 'ArrowLeft') showPrev();
+      });
+
+      // Swipe support inside modal
+      (function(){
+        let startX=0, distX=0, threshold=30;
+        modal.addEventListener('touchstart', function(e){ const t=e.touches[0]; startX=t.clientX; distX=0; }, {passive:true});
+        modal.addEventListener('touchmove', function(e){ const t=e.touches[0]; distX = t.clientX - startX; }, {passive:true});
+        modal.addEventListener('touchend', function(){ if (Math.abs(distX) > threshold) { if (distX < 0) showNext(); else showPrev(); } });
+      })();
+
+      // Randomize speed & direction for each row, ensure pause on pointer
+      document.querySelectorAll('.rot-row').forEach((row, idx) => {
+        const track = row.querySelector('.rot-track');
+        if (!track) return;
+
+        // choose a random speed between 20s and 40s (reasonable)
+        const min = 20, max = 40;
+        const speed = Math.floor(Math.random() * (max - min + 1)) + min;
+        track.style.setProperty('--speed', speed + 's');
+
+        // choose random direction
+        const reverse = Math.random() < 0.5;
+        if (reverse) row.classList.add('reverse');
+
+        // pointer / touch pause resume
+        row.addEventListener('pointerdown', function(){ track.style.animationPlayState = 'paused'; }, {passive:true});
+        row.addEventListener('pointerup', function(){ track.style.animationPlayState = 'running'; }, {passive:true});
+        row.addEventListener('pointerleave', function(){ track.style.animationPlayState = 'running'; }, {passive:true});
+
+        // keyboard space toggles row
+        row.addEventListener('keydown', function(e){
+          if (e.code === 'Space') { e.preventDefault(); const st = getComputedStyle(track).animationPlayState; track.style.animationPlayState = (st === 'running' ? 'paused' : 'running'); }
+        });
+      });
+
+      // Accessibility: ensure rows start running
+      document.querySelectorAll('.rot-track').forEach(t => t.style.animationPlayState = 'running');
+
+    })();
+  </script>
+
+</body>
+</html>
